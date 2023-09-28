@@ -15,7 +15,6 @@ AUDIO_SUPPORTED = no        # Audio is not supported
 RGB_MATRIX_SUPPORTED = yes  # RGB matrix is supported and enabled by default
 RGBLIGHT_SUPPORTED = yes    # RGB underglow is supported, but not enabled by default
 RGB_MATRIX_ENABLE = yes     # Enable keyboard RGB matrix functionality
-RGB_MATRIX_DRIVER = WS2812  # RGB matrix driver support
 
 SPLIT_KEYBOARD = yes
 
@@ -24,5 +23,3 @@ KEYBOARD_SHARED_EP = yes
 
 EEPROM_DRIVER = spi
 SERIAL_DRIVER = usart
-
-DEBOUNCE_TYPE = asym_eager_defer_pk

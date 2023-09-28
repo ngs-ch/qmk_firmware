@@ -90,7 +90,7 @@ painter_image_handle_t qp_load_image_mem(const void *buffer) {
 
 bool qp_close_image(painter_image_handle_t image) {
     qgf_image_handle_t *qgf_image = (qgf_image_handle_t *)image;
-    if (!qgf_image->validate_ok) {
+    if (!qgf_image || !qgf_image->validate_ok) {
         qp_dprintf("qp_close_image: fail (invalid image)\n");
         return false;
     }
@@ -210,13 +210,13 @@ static bool qp_drawimage_prepare_frame_for_stream_read(painter_device_t device, 
 static bool qp_drawimage_recolor_impl(painter_device_t device, uint16_t x, uint16_t y, painter_image_handle_t image, int frame_number, qgf_frame_info_t *frame_info, qp_pixel_t fg_hsv888, qp_pixel_t bg_hsv888) {
     qp_dprintf("qp_drawimage_recolor: entry\n");
     painter_driver_t *driver = (painter_driver_t *)device;
-    if (!driver->validate_ok) {
+    if (!driver || !driver->validate_ok) {
         qp_dprintf("qp_drawimage_recolor: fail (validation_ok == false)\n");
         return false;
     }
 
     qgf_image_handle_t *qgf_image = (qgf_image_handle_t *)image;
-    if (!qgf_image->validate_ok) {
+    if (!qgf_image || !qgf_image->validate_ok) {
         qp_dprintf("qp_drawimage_recolor: fail (invalid image)\n");
         return false;
     }
@@ -273,6 +273,10 @@ static bool qp_drawimage_recolor_impl(painter_device_t device, uint16_t x, uint1
         if (ret && output_state.pixel_write_pos > 0) {
             ret &= driver->driver_vtable->pixdata(device, qp_internal_global_pixdata_buffer, output_state.pixel_write_pos);
         }
+    } else if (frame_info->bpp != driver->native_bits_per_pixel) {
+        // Prevent stuff like drawing 24bpp images on 16bpp displays
+        qp_dprintf("Image's bpp doesn't match the target display's native_bits_per_pixel\n");
+        return false;
     } else {
         // Set up the output state
         qp_internal_byte_output_state_t output_state = {.device = device, .byte_write_pos = 0, .max_bytes = qp_internal_num_pixels_in_buffer(device) * driver->native_bits_per_pixel / 8};

@@ -50,6 +50,11 @@ def _valid_community_layout(layout):
     return (Path('layouts/default') / layout).exists()
 
 
+def _get_key_left_position(key):
+    # Special case for ISO enter
+    return key['x'] - 0.25 if key.get('h', 1) == 2 and key.get('w', 1) == 1.25 else key['x']
+
+
 def _additional_validation(keyboard, info_data):
     """Non schema checks
     """
@@ -64,7 +69,7 @@ def _additional_validation(keyboard, info_data):
 
     # Warn if physical positions are offset (at least one key should be at x=0, and at least one key at y=0)
     for layout_name, layout_data in layouts.items():
-        offset_x = min([k['x'] for k in layout_data['layout']])
+        offset_x = min([_get_key_left_position(k) for k in layout_data['layout']])
         if offset_x > 0:
             _log_warning(info_data, f'Layout "{layout_name}" is offset on X axis by {offset_x}')
 
@@ -700,6 +705,9 @@ def _extract_led_config(info_data, keyboard):
                     info_data[feature]["layout"] = ret
             except Exception as e:
                 _log_warning(info_data, f'led_config: {file.name}: {e}')
+
+        if info_data[feature].get("layout", None) and not info_data[feature].get("led_count", None):
+            info_data[feature]["led_count"] = len(info_data[feature]["layout"])
 
     return info_data
 
